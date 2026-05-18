@@ -133,7 +133,7 @@ def main():
             
         # Step 8: Persist final submission file
         logger.info("Saving final formatted submission to %s...", OUTPUT_SUB_PATH)
-        submission.to_csv(OUTPUT_SUB_PATH)
+        submission.to_csv(OUTPUT_SUB_PATH, index_label='id')
         
         logger.info("=== Inference & Submission Completed Successfully in %.2f seconds! ===", 
                     time.time() - overall_start)
