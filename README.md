@@ -99,6 +99,9 @@ After running Step 2 and generating the baseline prediction at `output/submissio
 
 ## 3. Local Execution Guide
 
+> [!IMPORTANT]
+> **End-to-End Execution Automation**: Running either of the training/forecasting scripts (**`src/step2_train.py`** or **`src/step2_train-ablation-study.py`**) will automatically trigger the entire end-to-end pipeline—sequentially executing **Step 0 (EDA)**, **Step 1 (Feature Engineering)**, and then **Step 2 (Model Training & Ensembling)**. You do **NOT** need to run individual scripts beforehand if you want a full run.
+
 ### Scenario A: Running Exploratory Data Analysis (EDA) Only
 To run the EDA data foundation stage, compile daily panels, and save the comprehensive visualizations to `output/eda_outputs/`:
 ```bash
