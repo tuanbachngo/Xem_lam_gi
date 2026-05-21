@@ -87,12 +87,14 @@ After running Step 2 and generating the baseline prediction at `output/submissio
      * **Distant Window (days -90 to -30)**: Evaluates whether the product had very low/sporadic transaction volume beforehand.
   2. **Dead SKU Identification**: If a product has had little to no sales activity in both windows (or had only minor transaction counts offset by large return quantities), it is flagged as "discontinued" or "inactive".
   3. **Zeroing Forecasts**: Sets the prediction values for these flagged dead SKUs to exactly `0.0` for all future periods (F1 to F28). This deactivation eliminates WRMSSE error inflation caused by machine learning models predicting random sales noise for inactive products.
+  4. **Output Location**: Saves the intermediate rule-zeroed prediction file directly to `post_process_submission/submission_experiment_new.csv`.
 
 #### 📂 [apply_magic_mult.py](file:///c:/Users/Admin/OneDrive%20-%20National%20Economics%20University/Desktop/HBAAC/utils/apply_magic_mult.py) — Magic Multiplier
 * **How it works**:
-  1. Loads the rule-zeroed predictions (`submission_experiment_new.csv`).
+  1. Loads the rule-zeroed predictions from `post_process_submission/submission_experiment_new.csv`.
   2. **Scales Active Predictions**: Multiplies all remaining non-zero forecasts by an optimal multiplier coefficient (e.g., `1.02` for main submission, or `1.03` for ablation study).
   3. **Safety Clipping**: Applies `.clip(lower=0.0)` and `.fillna(0.0)` to ensure multiplication never introduces negative values or NaNs.
+  4. **Output Location**: Saves the final boosted submission file directly to `post_process_submission/submission_x{MAGIC_MULT}.csv`.
   * *Scientific Rationale*: Due to standard RMSE loss functions tending to pull machine learning forecasts toward the mean (creating conservative predictions), multiplying active forecasts by a small constant factor (e.g. 1.02) helps match the skewed, right-tail nature of retail demand distributions and optimizes the score against the asymmetric loss properties of the WRMSSE metric.
 
 ---
@@ -130,4 +132,33 @@ $env:PYTHONUTF8=1; python utils/apply_rule_zero_skus.py
 # Step 2: Apply Magic Multiplier (Default 1.02)
 $env:PYTHONUTF8=1; python utils/apply_magic_mult.py
 ```
-*(The final optimized submission file will be saved as `submission_x1.02.csv` in the repository root).*
+*(The final optimized submission file will be saved directly inside the `post_process_submission/` directory as `post_process_submission/submission_x1.02.csv` for the main run, and `post_process_submission/submission_x1.03.csv` for the ablation run).*
+
+---
+
+## 4. GPU Execution & Reproducibility Note
+
+> [!NOTE]
+> **Non-Deterministic Behavior on GPU**: By default, this pipeline is configured to run LightGBM on the GPU (`"device": "gpu"`) with multi-threading enabled (`"n_jobs": -1`) to optimize training speed over the massive dataset (~28 million rows). 
+> 
+> Due to the highly parallelized nature of GPU training, atomic floating-point summation operations across thousands of concurrent GPU threads are subject to minor, non-associative rounding differences. Consequently, consecutive runs of the pipeline may yield extremely small variations in split thresholds, resulting in minor differences in the final predicted quantities. This is completely standard behavior for tree-based libraries running on GPU hardware.
+
+If your objective requires **100% byte-for-byte reproducibility** across multiple runs, you can enforce deterministic behavior by making the following adjustments in `src/step2_train.py` and `src/step2_train-ablation-study.py`:
+
+1. **Fix Python Hash Seed**:
+   Insert the following at the very top of your execution script before importing other libraries:
+   ```python
+   import os
+   os.environ['PYTHONHASHSEED'] = str(CONFIG["SEED"])
+   ```
+2. **Switch LightGBM to CPU Mode**:
+   Inside the `LGBM_BASE` configuration dictionary, change the device parameter from `"gpu"` to `"cpu"`:
+   ```python
+   "device": "cpu"
+   ```
+3. **Enforce Determinism in LightGBM**:
+   Add the `"deterministic": True` parameter to the `LGBM_BASE` configuration dictionary:
+   ```python
+   "deterministic": True
+   ```
+*(Note: Enforcing CPU-based deterministic training will significantly increase model execution time).*

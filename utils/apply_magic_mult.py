@@ -9,8 +9,8 @@ from pathlib import Path
 MAGIC_MULT = 1.02  
 
 # File paths
-INPUT_SUBMISSION = "submission_experiment_new.csv"  # The path to your original submission
-OUTPUT_SUBMISSION = f"submission_x{MAGIC_MULT}.csv"
+INPUT_SUBMISSION = "post_process_submission/submission_experiment_new.csv"  # The path to your original submission
+OUTPUT_SUBMISSION = f"post_process_submission/submission_x{MAGIC_MULT}.csv"
 
 
 def main():
@@ -36,8 +36,12 @@ def main():
     # Multiply and ensure we don't accidentally create negative values or NaNs
     df[pred_cols] = (df[pred_cols] * MAGIC_MULT).clip(lower=0.0).fillna(0.0)
     
+    # Create parent folder if not exists
+    output_path = Path(OUTPUT_SUBMISSION)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    
     print(f"3. Saving boosted submission to: {OUTPUT_SUBMISSION}...")
-    df.to_csv(OUTPUT_SUBMISSION, index=False)
+    df.to_csv(output_path, index=False)
     
     print("✅ Done!")
     print("=" * 60)

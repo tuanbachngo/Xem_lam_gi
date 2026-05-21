@@ -49,6 +49,12 @@ from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
 warnings.filterwarnings("ignore")
 
+# Global variables and fallbacks to avoid NameError
+naive_results = None
+_TRAIN_END = CONFIG["TRAIN_END"]
+_CUTOFF = CONFIG["EARLY_DATA_CUTOFF"]
+_OUTPUT_DIR = CONFIG["OUTPUT_DIR"]
+
 print("lightgbm version :", lgb.__version__)
 
 # ==============================================================================

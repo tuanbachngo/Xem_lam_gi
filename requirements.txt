@@ -9,4 +9,6 @@ scipy>=1.16.0
 joblib>=1.1.0
 scikit-learn>=1.0.0
 pyarrow>=10.0.0
+optuna>=3.0.0
+
 

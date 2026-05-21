@@ -10,7 +10,7 @@ import pandas as pd
 DEFAULT_CONFIG = {
     "train_path": "dataset/train.csv",
     "sub_path": "output/submission_outputs/submission.csv",
-    "output_path": "submission_experiment_new.csv",
+    "output_path": "post_process_submission/submission_experiment_new.csv",
     # 1. Khoảng thời gian gần (Recent period): tính từ (max_date - recent_days) đến max_date
     # -> GIẢM số ngày này sẽ làm điều kiện lỏng hơn (nhiều SKU không phát sinh giao dịch hơn trong khoảng gần)
     "recent_days": 30,
